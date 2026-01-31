@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import sqlite3 from "sqlite3";
+const fs = require("fs");
+const path = require("path");
+const sqlite3 = require("sqlite3").verbose();
 
 const dataDir = path.resolve("./data");
 
@@ -19,4 +19,4 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-export default db;
+module.exports = db;
