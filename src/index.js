@@ -31,11 +31,12 @@ db.run(`
     user_id TEXT,
     role_id TEXT
   )
+    
 `);
-
-client.once("ready", () => {
+client.on("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
+
 
 // 👋 evento miembro nuevo
 client.on("guildMemberAdd", async (member) => {
