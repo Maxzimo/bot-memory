@@ -1,38 +1,27 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 const db = require("../database/database");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("elegirrol")
-    .setDescription("Elige el rol que se guardará al salir del servidor")
+    .setDescription("Define el rol que se guardará y restaurará")
     .addRoleOption(option =>
-      option
-        .setName("rol")
-        .setDescription("Rol a guardar y restaurar")
+      option.setName("rol")
+        .setDescription("Rol a guardar")
         .setRequired(true)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    ),
 
   async execute(interaction) {
     const role = interaction.options.getRole("rol");
 
     db.run(
-      `INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)`,
-      ["role_id", role.id],
-      (err) => {
-        if (err) {
-          console.error(err);
-          return interaction.reply({
-            content: "❌ Error guardando el rol",
-            ephemeral: true
-          });
-        }
-
-        interaction.reply({
-          content: `✅ Rol configurado correctamente: **${role.name}**`,
-          ephemeral: true
-        });
-      }
+      `INSERT OR REPLACE INTO config (key, value) VALUES ('role_id', ?)`,
+      [role.id]
     );
+
+    await interaction.reply({
+      content: `✅ Rol configurado: ${role.name}`,
+      ephemeral: true
+    });
   }
 };
