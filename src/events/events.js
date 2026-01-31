@@ -7,6 +7,8 @@ module.exports = (client) => {
     .filter(f => f !== "event.js" && f.endsWith(".js"));
 
   for (const file of files) {
+    console.log("📦 Cargando evento:", file);
     require(`./${file}`)(client);
   }
 };
+
