@@ -1,3 +1,6 @@
+console.log("TOKEN RAW:", process.env.TOKEN);
+console.log("TIPO:", typeof process.env.TOKEN);
+console.log("LARGO:", process.env.TOKEN?.length);
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
