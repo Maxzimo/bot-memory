@@ -27,7 +27,7 @@ for (const file of eventFiles) {
   event(client);
 }
 
-/* 🔹 MANEJAR SLASH COMMANDS (ESTO ES LO QUE FALTABA) */
+/* 🔹 MANEJAR SLASH COMMANDS */
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -36,18 +36,19 @@ client.on("interactionCreate", async interaction => {
 
   try {
     await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) return;
-    await interaction.reply({ content: "❌ Error ejecutando el comando", ephemeral: true });
+  } catch (err) {
+    console.error(err);
+    if (!interaction.replied) {
+      await interaction.reply({ content: "❌ Error ejecutando el comando", ephemeral: true });
+    }
   }
 });
 
-/* 🔹 READY */
+/* 🔹 INICIAR EL BOT */
 client.once("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
- 
+
 
