@@ -1,16 +1,22 @@
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import sqlite3 from "sqlite3";
 
-const db = new sqlite3.Database(
-  path.join(__dirname, "../../data/roles.db")
-);
+const dataDir = path.resolve("./data");
 
-db.run(`
-CREATE TABLE IF NOT EXISTS saved_role (
-  user_id TEXT,
-  guild_id TEXT,
-  PRIMARY KEY (user_id, guild_id)
-)
-`);
+// crear carpeta data si no existe
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir);
+}
 
-module.exports = db;
+const dbPath = path.join(dataDir, "roles.db");
+
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error("❌ Error SQLite:", err.message);
+  } else {
+    console.log("✅ SQLite conectado");
+  }
+});
+
+export default db;
