@@ -1,8 +1,6 @@
-require("dotenv").config();
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
-const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
-const { Client, GatewayIntentBits } = require("discord.js");
+require("dotenv").config();
 
 const client = new Client({
   intents: [
@@ -11,52 +9,45 @@ const client = new Client({
   ]
 });
 
-// 📂 carpeta data
-const dataDir = path.join(__dirname, "..", "data");
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
+client.commands = new Collection();
+
+/* 🔹 CARGAR COMANDOS */
+const commandFiles = fs.readdirSync("./src/commands").filter(f => f.endsWith(".js"));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.data.name, command);
 }
 
-// 🗄️ base de datos
-const dbPath = path.join(dataDir, "roles.db");
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) console.error("❌ Error DB:", err);
-  else console.log("✅ DB conectada");
+/* 🔹 CARGAR EVENTOS */
+const eventFiles = fs.readdirSync("./src/events").filter(f => f.endsWith(".js"));
+
+for (const file of eventFiles) {
+  const event = require(`./events/${file}`);
+  event(client);
+}
+
+/* 🔹 MANEJAR SLASH COMMANDS (ESTO ES LO QUE FALTABA) */
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    if (interaction.replied || interaction.deferred) return;
+    await interaction.reply({ content: "❌ Error ejecutando el comando", ephemeral: true });
+  }
 });
 
-// 🧱 tabla
-db.run(`
-  CREATE TABLE IF NOT EXISTS roles (
-    guild_id TEXT,
-    user_id TEXT,
-    role_id TEXT
-  )
-    
-`);
-client.on("clientReady", () => {
+/* 🔹 READY */
+client.once("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
 
-
-// 👋 evento miembro nuevo
-client.on("guildMemberAdd", async (member) => {
-  console.log(`👋 ${member.user.tag} entró`);
-
-  db.all(
-    "SELECT role_id FROM roles WHERE guild_id = ? AND user_id = ?",
-    [member.guild.id, member.id],
-    async (err, rows) => {
-      if (err) return console.error(err);
-
-      for (const row of rows) {
-        const role = member.guild.roles.cache.get(row.role_id);
-        if (role) {
-          await member.roles.add(role);
-        }
-      }
-    }
-  );
-});
-
 client.login(process.env.TOKEN);
+ 
 
