@@ -1,25 +1,26 @@
 const db = require("../database/database");
-const { ROLE_ID } = require("../config/config");
 
-module.exports = {
-  name: "guildMemberAdd",
-  async execute(member) {
+module.exports = (client) => {
+  client.on("guildMemberAdd", async (member) => {
     db.get(
-      "SELECT * FROM saved_role WHERE user_id = ? AND guild_id = ?",
-      [member.id, member.guild.id],
+      `SELECT role_id FROM roles WHERE user_id = ?`,
+      [member.id],
       async (err, row) => {
-        if (!row) return;
+        if (err || !row) return;
 
-        const role = member.guild.roles.cache.get(ROLE_ID);
+        const role = member.guild.roles.cache.get(row.role_id);
         if (!role) return;
 
-        await member.roles.add(role);
+        try {
+          await member.roles.add(role);
+          console.log(`♻️ Rol restaurado a ${member.user.tag}`);
 
-        db.run(
-          "DELETE FROM saved_role WHERE user_id = ? AND guild_id = ?",
-          [member.id, member.guild.id]
-        );
+          db.run(`DELETE FROM roles WHERE user_id = ?`, [member.id]);
+        } catch (e) {
+          console.error("Error restaurando rol:", e);
+        }
       }
     );
-  }
+  });
 };
+

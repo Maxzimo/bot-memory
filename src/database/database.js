@@ -1,22 +1,22 @@
-const fs = require("fs");
-const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
+const fs = require("fs");
 
-const dataDir = path.resolve("./data");
+const dataPath = path.join(__dirname, "../../data");
+if (!fs.existsSync(dataPath)) fs.mkdirSync(dataPath);
 
-// crear carpeta data si no existe
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
-}
+const dbPath = path.join(dataPath, "roles.db");
 
-const dbPath = path.join(dataDir, "roles.db");
+const db = new sqlite3.Database(dbPath);
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error("❌ Error SQLite:", err.message);
-  } else {
-    console.log("✅ SQLite conectado");
-  }
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS roles (
+      user_id TEXT PRIMARY KEY,
+      role_id TEXT
+    )
+  `);
 });
 
 module.exports = db;
+
